@@ -1,0 +1,12 @@
+# Settings for the project's tools. pytest and Ruff both read this file.
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"   # which settings pytest-django loads
+python_files = ["test_*.py"]                 # test files are named test_something.py
+
+[tool.ruff]
+line-length = 100                            # max characters per line
+extend-exclude = ["migrations"]              # don't lint Django's generated files
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]                     # E: style errors, F: real bugs, I: import order
