@@ -1,0 +1,2 @@
+class UnreadableResumeError(Exception):
+    pass
