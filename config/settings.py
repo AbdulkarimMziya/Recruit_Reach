@@ -35,6 +35,7 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 AI_API_KEY = env("AI_API_KEY")
+AI_MODEL = env("AI_MODEL")
 
 # Application definition
 
@@ -145,7 +146,8 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "RecruitReach API",
-    "DESCRIPTION": "Upload your resume and a job post; get a short LinkedIn"
+    "DESCRIPTION": "Upload your resume and a job post; get a short LinkedIn "
     "message for the recruiter.",
     "VERSION": "1.0.0",
+    "COMPONENT_SPLIT_REQUEST": True,  # show file fields as uploads in Swagger
 }
