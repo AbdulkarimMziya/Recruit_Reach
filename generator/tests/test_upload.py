@@ -4,6 +4,8 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from docx import Document
 
+from .conftest import FAKE_AI_MESSAGE
+
 URL = "/api/generate/"
 
 
@@ -41,23 +43,28 @@ def post(client, form):
 # ---------- happy paths ----------
 
 
-def test_txt_resume_returns_character_count(client):
+def test_txt_resume_returns_generated_message(client):
     content = b"Python, Django, REST APIs"
     resume = SimpleUploadedFile("cv.txt", content, content_type="text/plain")
 
     response = post(client, make_form(resume))
 
     assert response.status_code == 200
-    assert response.data == {"resume_chars": len(content.decode())}
+    assert response.data == {
+        "message": FAKE_AI_MESSAGE,
+        "message_type": "connection_note",
+        "char_count": len(FAKE_AI_MESSAGE),
+    }
 
 
-def test_docx_resume_returns_character_count(client):
-    resume = SimpleUploadedFile("cv.docx", make_docx("Python", "Django"))
+def test_docx_resume_text_reaches_the_ai(client, fake_gemini):
+    resume = SimpleUploadedFile("cv.docx", make_docx("Built a Django REST API", "Python"))
 
     response = post(client, make_form(resume))
 
     assert response.status_code == 200
-    assert response.data == {"resume_chars": len("Python\nDjango")}
+    sent_prompt = fake_gemini.call_args.kwargs["contents"]
+    assert "Built a Django REST API\nPython" in sent_prompt
 
 
 def test_uppercase_extension_is_accepted(client):
