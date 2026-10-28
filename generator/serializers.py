@@ -24,3 +24,11 @@ class GenerateRequestSerializer(serializers.Serializer):
         if resume.size > MAX_UPLOAD_BYTES:
             raise serializers.ValidationError("File is too large (max 2 MB).")
         return resume
+
+
+class GenerateResponseSerializer(serializers.Serializer):
+    """The successful response from POST /api/generate/ (used for the API docs)."""
+
+    message = serializers.CharField(help_text="The LinkedIn message, ready to paste.")
+    message_type = serializers.CharField(help_text="connection_note, inmail or follow_up.")
+    char_count = serializers.IntegerField(help_text="Length of the message in characters.")
