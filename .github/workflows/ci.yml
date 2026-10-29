@@ -1,0 +1,38 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # CI has no .env file, so settings.py gets its values from here.
+    # These are fake on purpose: the tests never call Gemini or a real server.
+    # Never put a real key in this file - it's public on GitHub.
+    env:
+      SECRET_KEY: ci-only-not-a-real-secret
+      DEBUG: "False"
+      AI_API_KEY: fake-key-tests-never-call-gemini
+      AI_MODEL: fake-model
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Test
+        run: pytest
