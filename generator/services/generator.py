@@ -15,6 +15,11 @@ def _call_ai(system_prompt: str, user_prompt: str) -> str:
     # crash with its real error, not be reported as "service unavailable".
     api_key = settings.AI_API_KEY
     model = settings.AI_MODEL
+    if not api_key or not model:
+        raise AIServiceError(
+            "AI_API_KEY or AI_MODEL is not set. Copy .env.example to .env "
+            "and add your own Gemini API key and model name."
+        )
 
     try:
         client = genai.Client(
