@@ -17,6 +17,8 @@ Run `curl -s http://127.0.0.1:8000/api/health/`.
 
 Follow the **Intake** section of `AGENTS.md`: collect the job post, company, recruiter's name, resume path, message type and tone. Use anything given in the request (e.g. "Franklin at Intuit"), and ask for the rest one short question at a time. Never invent a recruiter's name or a resume path.
 
+**Always ask which resume to use, even if one was used earlier in the conversation.** The user tailors a resume to each application, so the message must come from the resume they choose for this one. You can offer the last one ("Same resume as before, `X.docx`, or a different one?"), but wait for their answer.
+
 ## 3. Run it
 
 Pipe the job post in with `--job -` (you can't press Ctrl-D):

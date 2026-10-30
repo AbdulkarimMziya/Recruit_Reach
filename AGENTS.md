@@ -15,11 +15,11 @@ Before running the CLI, make sure you have all six inputs. Ask the user for anyt
 | 1 | **Job post** | ask: "Paste the job description." Use the full text they paste, unchanged. |
 | 2 | **Company** | ask, unless it's clearly named in the job post; if you take it from the post, say so |
 | 3 | **Recruiter's name** | always ask; never take a name from the job post or make one up |
-| 4 | **Resume path** | ask for the path to a `.txt` or `.docx` file; reuse the one they gave earlier in the conversation |
+| 4 | **Resume path** | **always ask, for every message**: the user keeps a custom resume per application. Ask for the path to a `.txt` or `.docx` file. You may offer the last one used as an option, but only use it if they confirm. |
 | 5 | **Message type** | ask: connection note (≤300 chars), InMail (≤1000) or follow-up (≤500)? |
 | 6 | **Tone** | ask: friendly, formal or brief? |
 
-- If the user says "use the defaults", use `connection_note` and `friendly` for 5 and 6. Never default 1–4.
+- If the user says "use the defaults", use `connection_note` and `friendly` for 5 and 6. Never default 1–4, and never reuse a resume without asking.
 - Several inputs given at once ("connection note to Franklin at Intuit, friendly") count; only ask for what's still missing.
 - Before running, restate the inputs in one line (e.g. "Connection note to Franklin at Intuit, friendly, using `Resume.docx`.") and run it.
 - After the result: show the message exactly as returned, with its character count. Offer one follow-up, e.g. "Want an InMail or a different tone?" Don't edit the message yourself: run the CLI again with different options instead.
