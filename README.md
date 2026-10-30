@@ -5,7 +5,7 @@
 **Turn your resume and a job post into a short, personal LinkedIn message to the recruiter.**
 RecruitReach is a Django REST API and a command-line tool. It reads your resume, picks the projects and skills that best match the job, and writes a connection note, InMail or follow-up that fits LinkedIn's length limits.
 
-<!-- Add a GIF of the CLI here: ![RecruitReach CLI demo](docs/demo.gif) -->
+![RecruitReach CLI demo](docs/demo.gif)
 
 ```text
 $ python cli/recruitreach.py --resume cv.docx --company Intuit --recruiter "Franklin" --type connection_note
