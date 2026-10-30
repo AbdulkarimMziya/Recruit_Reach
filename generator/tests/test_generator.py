@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from django.test import override_settings
 
 from generator.errors import AIServiceError
 from generator.services.generator import _call_ai, generate_message
@@ -120,3 +121,13 @@ def test_call_ai_wraps_sdk_errors(fake_gemini):
         _call_ai("rules", "request")
 
     assert isinstance(info.value.__cause__, RuntimeError)
+
+
+@pytest.mark.parametrize("missing", ["AI_API_KEY", "AI_MODEL"])
+def test_call_ai_missing_setting_gives_a_clear_message(fake_gemini, missing):
+    with override_settings(**{missing: ""}):
+        with pytest.raises(AIServiceError) as info:
+            _call_ai("rules", "request")
+
+    assert "Copy .env.example to .env" in str(info.value)
+    fake_gemini.assert_not_called()
