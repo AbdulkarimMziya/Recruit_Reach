@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 MESSAGE_TYPE = ["connection_note", "inmail", "follow_up"]
 MESSAGE_TONE = ["friendly", "formal", "brief"]
-ALLOWED_EXTENSIONS = {".txt", ".docx"}
+ALLOWED_EXTENSIONS = {".txt", ".docx", ".pdf"}
 MAX_UPLOAD_BYTES = 2 * 1024 * 1024
 
 
