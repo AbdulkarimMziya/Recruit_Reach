@@ -1,6 +1,7 @@
 import os
 
 from docx import Document
+from pypdf import PdfReader
 
 from ..errors import UnreadableResumeError
 
@@ -16,6 +17,9 @@ def extract_text(file) -> str:
         elif ext == ".docx":
             doc = Document(file)  # python-docx opens the file object
             text = "\n".join(p.text for p in doc.paragraphs)
+        elif ext == ".pdf":
+            reader = PdfReader(file)
+            text = "\n".join(page.extract_text() or "" for page in reader.pages)
         else:
             raise UnreadableResumeError(f"Unsupported file type: {ext}")
     except UnreadableResumeError:

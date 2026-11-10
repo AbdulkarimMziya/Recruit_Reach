@@ -1,12 +1,15 @@
 import io
+from pathlib import Path
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from docx import Document
+from pypdf import PdfWriter
 
 from .conftest import FAKE_AI_MESSAGE
 
 URL = "/api/generate/"
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 # ---------- helpers ----------
@@ -19,6 +22,15 @@ def make_docx(*paragraphs):
         doc.add_paragraph(text)
     buffer = io.BytesIO()
     doc.save(buffer)
+    return buffer.getvalue()
+
+
+def make_blank_pdf():
+    """A real PDF with one empty page (no text), built in memory."""
+    writer = PdfWriter()
+    writer.add_blank_page(width=612, height=792)  # US letter size
+    buffer = io.BytesIO()
+    writer.write(buffer)
     return buffer.getvalue()
 
 
@@ -67,6 +79,17 @@ def test_docx_resume_text_reaches_the_ai(client, fake_gemini):
     assert "Built a Django REST API\nPython" in sent_prompt
 
 
+def test_pdf_resume_text_reaches_the_ai(client, fake_gemini):
+    content = (FIXTURES / "sample_resume.pdf").read_bytes()
+    resume = SimpleUploadedFile("cv.pdf", content, content_type="application/pdf")
+
+    response = post(client, make_form(resume))
+
+    assert response.status_code == 200
+    sent_prompt = fake_gemini.call_args.kwargs["contents"]
+    assert "Built a Django REST API" in sent_prompt
+
+
 def test_uppercase_extension_is_accepted(client):
     resume = SimpleUploadedFile("CV.TXT", b"Python")
 
@@ -78,7 +101,7 @@ def test_uppercase_extension_is_accepted(client):
 # ---------- the resume file ----------
 
 
-@pytest.mark.parametrize("filename", ["cv.pdf", "cv.exe", "cv"])
+@pytest.mark.parametrize("filename", ["cv.doc", "cv.exe", "cv"])
 def test_wrong_file_type_returns_400(client, filename):
     resume = SimpleUploadedFile(filename, b"some content")
 
@@ -126,6 +149,24 @@ def test_blank_docx_returns_400(client):
 
 def test_corrupt_docx_returns_400(client):
     resume = SimpleUploadedFile("cv.docx", b"this is not really a word file")
+
+    response = post(client, make_form(resume))
+
+    assert response.status_code == 400
+    assert response.data == {"error": "Could not read the file."}
+
+
+def test_blank_pdf_returns_400(client):
+    resume = SimpleUploadedFile("cv.pdf", make_blank_pdf())
+
+    response = post(client, make_form(resume))
+
+    assert response.status_code == 400
+    assert response.data == {"error": "The resume has no text in it."}
+
+
+def test_corrupt_pdf_returns_400(client):
+    resume = SimpleUploadedFile("cv.pdf", b"this is not really a pdf")
 
     response = post(client, make_form(resume))
 
