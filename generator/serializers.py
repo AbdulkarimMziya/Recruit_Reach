@@ -8,6 +8,16 @@ ALLOWED_EXTENSIONS = {".txt", ".docx", ".pdf"}
 MAX_UPLOAD_BYTES = 2 * 1024 * 1024
 
 
+def check_resume_file(resume):
+    """Shared upload checks for every endpoint that takes a resume: type and size."""
+    ext = os.path.splitext(resume.name)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise serializers.ValidationError("Only .txt, .docx and .pdf files are allowed.")
+    if resume.size > MAX_UPLOAD_BYTES:
+        raise serializers.ValidationError("File is too large (max 2 MB).")
+    return resume
+
+
 class GenerateRequestSerializer(serializers.Serializer):
     resume = serializers.FileField()
     company = serializers.CharField(max_length=100)
@@ -17,13 +27,16 @@ class GenerateRequestSerializer(serializers.Serializer):
     tone = serializers.ChoiceField(choices=MESSAGE_TONE)
 
     def validate_resume(self, resume):
-        ext = os.path.splitext(resume.name)[1].lower()
-        if ext not in ALLOWED_EXTENSIONS:
-            raise serializers.ValidationError("Only .txt and .docx files are allowed.")
+        return check_resume_file(resume)
 
-        if resume.size > MAX_UPLOAD_BYTES:
-            raise serializers.ValidationError("File is too large (max 2 MB).")
-        return resume
+
+class ParseRequestSerializer(serializers.Serializer):
+    """POST /api/resumes/parse/: just the resume file."""
+
+    resume = serializers.FileField()
+
+    def validate_resume(self, resume):
+        return check_resume_file(resume)
 
 
 class GenerateResponseSerializer(serializers.Serializer):

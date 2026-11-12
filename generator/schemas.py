@@ -9,10 +9,10 @@ from pydantic import BaseModel
 
 
 class Experience(BaseModel):
-    id: str = ""                # filled by ResumeData.assign_ids, not the AI
-    title: str                  # "Backend Developer Co-op"
+    id: str = ""  # filled by ResumeData.assign_ids, not the AI
+    title: str  # "Backend Developer Co-op"
     organisation: str
-    date: str | None = None     # kept as text: "May 2025 - Aug 2025", "Present"
+    date: str | None = None  # kept as text: "May 2025 - Aug 2025", "Present"
     bullets: list[str]
 
 
@@ -26,7 +26,7 @@ class Project(BaseModel):
 
 class School(BaseModel):
     school: str
-    credential: str               # "BSc Computer Science"
+    credential: str  # "BSc Computer Science"
     date: str | None = None
 
 

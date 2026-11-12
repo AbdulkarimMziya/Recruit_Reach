@@ -4,8 +4,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .errors import AIServiceError, UnreadableResumeError
-from .serializers import GenerateRequestSerializer, GenerateResponseSerializer
+from .schemas import ResumeData
+from .serializers import (
+    GenerateRequestSerializer,
+    GenerateResponseSerializer,
+    ParseRequestSerializer,
+)
 from .services.generator import generate_message
+from .services.parser import parse_resume
 from .services.resume import extract_text
 
 
@@ -30,7 +36,7 @@ class Health(APIView):
 class GenerateView(APIView):
     @extend_schema(
         summary="Generate a LinkedIn message to a recruiter",
-        description="Upload a resume (.txt or .docx) and paste a job post. "
+        description="Upload a resume (.txt, .docx or .pdf) and paste a job post. "
         "The AI picks your most relevant projects and writes a short message.",
         request={"multipart/form-data": GenerateRequestSerializer},
         responses={
@@ -76,3 +82,33 @@ class GenerateView(APIView):
         return Response(
             {"message": message, "message_type": message_type, "char_count": len(message)}
         )
+
+
+class ParseResumeView(APIView):
+    @extend_schema(
+        summary="Sort a resume into sections",
+        description="Upload a resume (.txt, .docx or .pdf). The AI sorts it into "
+        "experience, projects, education, skills and certifications, copying "
+        "every bullet word for word.",
+        request={"multipart/form-data": ParseRequestSerializer},
+        responses={
+            200: ResumeData,
+            400: OpenApiResponse(description="Invalid file, or the resume couldn't be read."),
+            503: OpenApiResponse(
+                description="The AI service is unavailable, or its answer was invalid."
+            ),
+        },
+    )
+    def post(self, request):
+        serializer = ParseRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            text = extract_text(serializer.validated_data["resume"])
+            resume = parse_resume(text)
+        except UnreadableResumeError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except AIServiceError as e:
+            return Response({"error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        return Response(resume.model_dump())
