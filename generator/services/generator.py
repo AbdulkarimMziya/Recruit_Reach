@@ -6,10 +6,17 @@ from ..errors import AIServiceError
 from .prompts import LENGTH_LIMITS, SYSTEM_PROMPT, build_prompt
 
 
-def _call_ai(system_prompt: str, user_prompt: str) -> str:
+def _call_ai(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    max_tokens: int = 400,
+    schema: type | None = None,
+) -> str:
     """
     Send one request to Gemini and return the reply text.
     The ONLY function that talks to Gemini.
+    Pass `schema` (a Pydantic model) to get a JSON reply in exactly that shape.
     """
     # Read settings OUTSIDE the try: a missing setting is our bug and should
     # crash with its real error, not be reported as "service unavailable".
@@ -21,6 +28,15 @@ def _call_ai(system_prompt: str, user_prompt: str) -> str:
             "and add your own Gemini API key and model name."
         )
 
+    # Build the request settings BEFORE the call, so Gemini receives them.
+    config_args = {
+        "system_instruction": system_prompt,
+        "max_output_tokens": max_tokens,
+    }
+    if schema is not None:  # JSON mode: answer in exactly this shape
+        config_args["response_mime_type"] = "application/json"
+        config_args["response_schema"] = schema
+
     try:
         client = genai.Client(
             api_key=api_key,
@@ -29,10 +45,7 @@ def _call_ai(system_prompt: str, user_prompt: str) -> str:
         response = client.models.generate_content(
             model=model,
             contents=user_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                max_output_tokens=400,
-            ),
+            config=types.GenerateContentConfig(**config_args),
         )
     except Exception as e:
         raise AIServiceError("The AI service is unavailable. Please try again shortly.") from e
