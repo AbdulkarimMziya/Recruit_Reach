@@ -151,3 +151,17 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "COMPONENT_SPLIT_REQUEST": True,  # show file fields as uploads in Swagger
 }
+
+
+REDIS_URL = env("REDIS_URL", default="")
+
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
+    }
+else:
+    # No Redis configured: Django's built-in in-memory cache.
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}

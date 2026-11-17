@@ -12,11 +12,13 @@ def _call_ai(
     *,
     max_tokens: int = 400,
     schema: type | None = None,
+    timeout_s: int = 20,
 ) -> str:
     """
     Send one request to Gemini and return the reply text.
     The ONLY function that talks to Gemini.
     Pass `schema` (a Pydantic model) to get a JSON reply in exactly that shape.
+    Raise `timeout_s` for slow jobs, like sorting a whole resume.
     """
     # Read settings OUTSIDE the try: a missing setting is our bug and should
     # crash with its real error, not be reported as "service unavailable".
@@ -40,7 +42,7 @@ def _call_ai(
     try:
         client = genai.Client(
             api_key=api_key,
-            http_options=types.HttpOptions(timeout=20_000),  # milliseconds = 20 seconds
+            http_options=types.HttpOptions(timeout=timeout_s * 1000),  # Gemini wants milliseconds
         )
         response = client.models.generate_content(
             model=model,

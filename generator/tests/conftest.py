@@ -23,3 +23,16 @@ def fake_gemini():
     with patch("google.genai.models.Models.generate_content") as mock:
         mock.return_value = SimpleNamespace(text=FAKE_AI_MESSAGE)
         yield mock
+
+
+@pytest.fixture(autouse=True)
+def fresh_cache(settings):
+    """Every test gets its own empty in-memory cache, never the real Redis.
+
+    Without this, an answer cached by one test would be a "hit" in the next,
+    and tests would quietly stop calling the fake Gemini.
+    """
+    settings.CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    from django.core.cache import cache
+
+    cache.clear()

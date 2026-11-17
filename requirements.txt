@@ -47,3 +47,4 @@ uritemplate==4.2.0
 urllib3==2.8.0
 websockets==17.3
 pypdf==7.0.0
+redis==8.1.0
