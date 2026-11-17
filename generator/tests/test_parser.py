@@ -1,11 +1,13 @@
 import json
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
 from generator.errors import AIServiceError
 from generator.schemas import ResumeData
-from generator.services.parser import parse_resume
+from generator.services.generator import types
+from generator.services.parser import AI_TIMEOUT_S, parse_resume
 from generator.services.prompts import PARSE_PROMPT
 
 RESUME_TEXT = "Sam Lee\nDev Co-op, Acme\n- Built an API\nRecruitReach\n- Django REST API"
@@ -53,6 +55,17 @@ def test_asks_gemini_for_json_in_the_resume_shape(fake_gemini):
     assert config.response_schema is ResumeData
     assert config.max_output_tokens == 4000
     assert config.system_instruction == PARSE_PROMPT
+
+
+def test_parsing_gets_a_longer_timeout_than_messages(fake_gemini):
+    """A whole resume as JSON takes ~20 s, so parsing must not use the 20 s default."""
+    ai_replies(fake_gemini, json.dumps(sorted_resume()))
+
+    with patch.object(types, "HttpOptions", wraps=types.HttpOptions) as http_options:
+        parse_resume(RESUME_TEXT)
+
+    assert http_options.call_args.kwargs["timeout"] == AI_TIMEOUT_S * 1000
+    assert AI_TIMEOUT_S > 20
 
 
 def test_resume_text_is_sent_inside_resume_tags(fake_gemini):
